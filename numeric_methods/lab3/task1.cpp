@@ -141,9 +141,11 @@ int main() {
     vector<double> x_i{ 0, M_PI / 8, M_PI / 4, 3 * M_PI / 8 };
     vector<double> y_i{ f(x_i[0]), f(x_i[1]), f(x_i[2]), f(x_i[3]) };
 
+    cout << "Variant A:" << endl;
     polynom_lagrange(x_i, y_i);
     x_i[2] = M_PI / 3;
     y_i[2] = f(x_i[2]);
+    cout << "Variant B:" << endl;
     polynom_newton(x_i, y_i);
 
     return 0;

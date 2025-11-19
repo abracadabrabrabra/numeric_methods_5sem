@@ -24,36 +24,42 @@ void print_itegrals(const integral_vals& vals) {
 }
 
 double f(double x) { return 1 / (x * x * x * x + 16); }
+double func_ex(double x) { return x / ((3 * x + 4) * (3 * x + 4)); }
 
 void calculate_integral(callback func, integral_vals& dst, double start, double fin, double step) {
-
-    if (fin < start || fabs(fin - start) < 1e-10 ||  step < 1e-10)
+    if (fin < start || fabs(fin - start) < 1e-10 || step < 1e-10)
         throw invalid_argument("Incorrect range or step <= 0");
+
     int segments = static_cast<int>((fin - start) / step);
     if (segments % 2)
         throw invalid_argument("Odd number of segments for Simpson's method");
 
-    dst.rect = 0., dst.trapeze = 0., dst.simpson = f(start) + f(fin);
-    double x = start;
+    dst.rect = 0.;
+    dst.trapeze = 0.;
+    dst.simpson = 0.;
 
-    for (int i = 1; i < segments; ++i) {
-        x += step;
-        double y_i = func(x), y_prev = func(x - step),
-            y_mid = func(x - step / 2);
-        dst.rect += y_mid;
-        dst.trapeze += (y_i + y_prev);
-        dst.simpson += ((i % 2) ? 4 : 2) * y_i;
+    for (int i = 0; i < segments; ++i) {
+        double x_mid = start + (i + 0.5) * step;
+        dst.rect += func(x_mid);
     }
-    x += step;
-    double y_i = func(x), y_prev = func(x - step),
-        y_mid = func(x - step / 2);
-    dst.rect += y_mid;
-    dst.trapeze += (y_i + y_prev);
-
-
     dst.rect *= step;
-    dst.trapeze *= step * 0.5;
-    dst.simpson *= step / 3.;
+
+    dst.trapeze = (func(start) + func(fin)) * 0.5;
+    for (int i = 1; i < segments; ++i) {
+        double x_i = start + i * step;
+        dst.trapeze += func(x_i);
+    }
+    dst.trapeze *= step;
+
+    dst.simpson = func(start) + func(fin);
+    for (int i = 1; i < segments; ++i) {
+        double x_i = start + i * step;
+        if (i % 2 == 1) 
+            dst.simpson += 4 * func(x_i);
+        else 
+            dst.simpson += 2 * func(x_i);
+    }
+    dst.simpson *= step / 3.0;
 }
 
 void calculate_err(array<double, 3>& dst, const integral_vals& vh1, const integral_vals& vh2) {

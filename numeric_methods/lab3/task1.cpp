@@ -20,7 +20,9 @@ double gorner_scheme(const vector<double>& pol, const double val) {
 }
 
 double delta(const vector<double>& pol) {
-    return fabs(f_point - gorner_scheme(pol, point));
+    double poly_val = gorner_scheme(pol, point);
+    cout << " Value in target point: " << poly_val << endl;
+    return fabs(f_point - poly_val);
 }
 
 void print_polynom(const vector<double>& pol) {
@@ -72,7 +74,9 @@ void polynom_lagrange(const vector<double>& x, const vector<double>& y) {
     vector<double> res = lagrange_coeffs(x, y);
     cout << " Lagrange polynom:" << endl;
     print_polynom(res);
-    cout << " Eps as delta funcs: " << delta(res) << endl;
+    double d = delta(res);
+    cout << " Eps as delta funcs: ";
+    cout << d << endl;
 }
 
 vector<double> divided_diffs(const vector<double>& x, const vector<double>& y) {
@@ -131,7 +135,9 @@ void polynom_newton(const vector<double>& x, const vector<double>& y) {
     vector<double> res = newton_coeffs(x, y);
     cout << " Newton polynom:" << endl;
     print_polynom(res);
-    cout << " Eps as delta funcs: " << delta(res) << endl;
+    double d = delta(res);
+    cout << " Eps as delta funcs: ";
+    cout << d << endl;
 }
 
 
@@ -143,9 +149,11 @@ int main() {
 
     cout << "Variant A:" << endl;
     polynom_lagrange(x_i, y_i);
+    polynom_newton(x_i, y_i);
     x_i[2] = M_PI / 3;
     y_i[2] = f(x_i[2]);
     cout << "Variant B:" << endl;
+    polynom_lagrange(x_i, y_i);
     polynom_newton(x_i, y_i);
 
     return 0;

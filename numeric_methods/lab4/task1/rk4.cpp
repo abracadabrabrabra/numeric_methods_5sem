@@ -21,7 +21,7 @@ struct system_input_data {
     func2 f;
 };
 
-vector<tuple<double, double, double>> euler_system(system_input_data& input, vector<double>& y, const double h) {
+vector<tuple<double, double, double>> rk4_system(system_input_data& input, vector<double>& y, const double h) {
     const double eps = 1e-12;
     if (h <= eps)
         throw invalid_argument("Step too small");
@@ -43,18 +43,30 @@ vector<tuple<double, double, double>> euler_system(system_input_data& input, vec
         double y_prev = get<1>(net[i - 1]);
         double z_prev = get<2>(net[i - 1]);
 
-        // predictor
-        double x_next = x_prev + h;
-        double y_pred = y_prev + h * z_prev;
-        double z_pred = z_prev + h * input.f(x_prev, y_prev, z_prev);
+        double k1, k2, k3, k4;
+        double l1, l2, l3, l4;
 
-        // corrector (euler-cauchy)
-        double new_y = y_prev + h * (z_prev + z_pred) / 2.0;
-        double new_z = z_prev + h * (input.f(x_prev, y_prev, z_prev) +
-            input.f(x_next, y_pred, z_pred)) / 2.0;
+        k1 = h * z_prev;
+        l1 = h * input.f(x_prev, y_prev, z_prev);
+
+        k2 = h * (z_prev + l1 / 2);
+        l2 = h * input.f(x_prev + h / 2, y_prev + k1 / 2, z_prev + l1 / 2);
+
+        k3 = h * (z_prev + l2 / 2);
+        l3 = h * input.f(x_prev + h / 2, y_prev + k2 / 2, z_prev + l2 / 2);
+
+        k4 = h * (z_prev + l3);
+        l4 = h * input.f(x_prev + h, y_prev + k3, z_prev + l3);
+
+        double delta_y = (k1 + 2 * k2 + 2 * k3 + k4) / 6;
+        double delta_z = (l1 + 2 * l2 + 2 * l3 + l4) / 6;
+
+        double new_x = x_prev + h;
+        double new_y = y_prev + delta_y;
+        double new_z = z_prev + delta_z;
 
         y[i] = new_y;
-        net[i] = { x_next, new_y, new_z };
+        net[i] = { new_x, new_y, new_z };
     }
 
     return net;
@@ -91,8 +103,8 @@ void estimate_error(method m, system_input_data& input, const double h, int orde
 int main() {
     system_input_data input{ 1., 1., 1., 2., f2 };
 
-    cout << "=== Euler-Cauchy method ===" << endl;
-    estimate_error(euler_system, input, 0.1, 2);
+    cout << "=== RK 4th order ===" << endl;
+    estimate_error(rk4_system, input, 0.1, 4);
 
     return 0;
 }

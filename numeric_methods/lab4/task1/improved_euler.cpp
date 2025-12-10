@@ -43,15 +43,15 @@ vector<tuple<double, double, double>> euler_system(system_input_data& input, vec
         double y_prev = get<1>(net[i - 1]);
         double z_prev = get<2>(net[i - 1]);
 
-        // predictor
-        double x_next = x_prev + h;
-        double y_pred = y_prev + h * z_prev;
-        double z_pred = z_prev + h * input.f(x_prev, y_prev, z_prev);
+        // first half step
+        double x_mid = x_prev + h / 2.0;
+        double y_mid = y_prev + (h / 2.0) * z_prev;
+        double z_mid = z_prev + (h / 2.0) * input.f(x_prev, y_prev, z_prev);
 
-        // corrector (euler-cauchy)
-        double new_y = y_prev + h * (z_prev + z_pred) / 2.0;
-        double new_z = z_prev + h * (input.f(x_prev, y_prev, z_prev) +
-            input.f(x_next, y_pred, z_pred)) / 2.0;
+        // second half step
+        double x_next = x_prev + h;
+        double new_y = y_prev + h * z_mid;
+        double new_z = z_prev + h * input.f(x_mid, y_mid, z_mid);
 
         y[i] = new_y;
         net[i] = { x_next, new_y, new_z };
@@ -91,7 +91,7 @@ void estimate_error(method m, system_input_data& input, const double h, int orde
 int main() {
     system_input_data input{ 1., 1., 1., 2., f2 };
 
-    cout << "=== Euler-Cauchy method ===" << endl;
+    cout << "=== First improved Euler method ===" << endl;
     estimate_error(euler_system, input, 0.1, 2);
 
     return 0;
